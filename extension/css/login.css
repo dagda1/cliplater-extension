@@ -1,0 +1,35 @@
+body.is-logged-out {
+  width: 300px;
+  margin: 0;
+  padding: 0;
+  background-color: #313131;
+}
+
+#logged-out {
+  display: flex;
+}
+
+.button-container {
+  margin: 10%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+#login-button {
+  height: 20px;
+  padding: 16px 26px;
+  flex: 1;
+  white-space: nowrap;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  text-decoration: none;
+  text-align: center;
+  text-shadow: #777 1px 1px 1px;
+  line-height: 20px;
+  color: #FFF;
+  background: #3887E6;
+  border: 6px solid #E4E5E8;
+  border-radius: 50px;
+  box-shadow: inset 0px -3px 3px #3E74C4;
+}

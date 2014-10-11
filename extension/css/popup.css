@@ -1,0 +1,140 @@
+html {
+  width: 380px;
+  height: 463px;
+}
+
+body {
+  height: 463px;
+  margin: 0;
+  padding: 0;
+  color: #6E6E6E;
+  background-color: #F3F3F3;
+}
+
+.container {
+  width: 380px !important;
+}
+
+#status {
+  position: relative;
+  margin: 10px 10px 0;
+}
+
+#status .alert {
+  margin-bottom: 0;
+  position: absolute;
+  top: 0;right: 0;left:0;
+}
+
+body.is-logged-out #main {
+  display: none;
+}
+
+input:not([type="image"]) {
+  box-sizing: inherit;
+}
+
+.radium-form-legend {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.radium-form .control-input {
+  border-color: #C8C8C8;
+  box-shadow: none !important;
+}
+
+.radium-form .control-input:focus {
+  border-color: #0082DF;
+}
+
+.radium-form legend {
+  padding-left: 20px;
+}
+
+.radium-form .control-label {
+  width: 90px;
+  text-align: left;
+  padding-left: 20px;
+  font-weight: bold;
+}
+
+.radium-form .controls {
+  margin-left: 120px;
+}
+
+.radium-form-address-toggle {
+  margin-right: 30px;
+}
+
+.address-controls input {
+  margin-bottom: 10px;
+}
+
+.tt-dropdown-menu {
+  display: none !important;
+}
+
+.btn-submit,
+.btn-submit:hover {
+  line-height: 30px;
+  font-weight: bold;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.btn-submit,
+.btn-submit:active,
+.btn-submit:focus,
+.btn-submit:hover {
+  border-color: #0082DF;
+  background-color: #007CDD;
+  background-image: linear-gradient(#00A3E7, #007CDD);
+}
+
+
+/* Parsley Validations */
+input:focus:invalid:focus,
+textarea:focus:invalid:focus,
+select:focus:invalid:focus {
+  color: #666;
+  border-color: #0082DF;
+}
+
+.parsley-errors-list {
+  margin: 0;
+  list-style: none;
+  font-size: 11px;
+  color: #C60038;
+}
+
+.radium-form input.parsley-error,
+.radium-form input.parsley-error:focus {
+  border-color: #C60038;
+}
+
+/* Extension footer */
+.radium-footer {
+  padding: 26px 0;
+  text-align: center;
+  font-size: 10px;
+  background-color: #313131;
+}
+
+.radium-footer img {
+  margin-right: 5px;
+  vertical-align: top;
+  display: inline-block;
+}
+
+.radium-footer a {
+  color: #666666;
+}
+
+.radium-footer a:hover {
+  text-decoration: none;
+  color: #fff;
+}
+
+.radium-footer a.radium-footer-text-link {
+  margin-left: 5px;
+}

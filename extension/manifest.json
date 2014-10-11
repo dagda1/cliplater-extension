@@ -1,20 +1,47 @@
 {
-  manifest_version: 2,
-  name: "Clip Later",
-  description: "Clip crap for later",
-  version: "0.0.1",
-  author: "Paul Cowan",
-  permissions: [
+  "manifest_version": 2,
+  "name": "Clip Later",
+  "description": "Clip crap for later",
+  "version": "0.0.1",
+  "author": "Paul Cowan",
+  "web_accessible_resources": [
+    "js/*",
+    "css/*",
+    "webfonts/*",
+    "img/*"
+  ],
+  "permissions": [
+    "bookmarks",
     "tabs",
-    "<all_urls>"
+    "<all_urls>",
+    "http://localhost:9292/",
+    "cookies",
+    "http://*/*",
+    "https://*/*",
+    "alarms",
+    "clipboardRead",
+    "clipboardWrite",
+    "geolocation",
+    "pushMessaging"
   ],
-  web_accessible_resources: [
-    "js/*"
-  ],
-  background: {
-    scripts: [
+  "browser_action": {
+    "default_icon": {
+      "19": "img/logo19.png",
+      "38": "img/logo38.png"
+    },
+    "default_popup": "pages/popup.html"
+  },
+  "icons": {
+    "16": "img/icon-white-16.png",
+    "48": "img/icon-white-48.png",
+    "128": "img/icon-white-128.png"
+  },
+  "background": {
+    "scripts": [
       "js/compiled/goog/base.js",
-      "js/compiled/cliplater.js"
+      "js/compiled/cliplater.js",
+      "js/background-boot.js"
     ]
-  }
+  },
+  "content_security_policy": "script-src 'self' https://ajax.googleapis.com; object-src 'self'"
 }
