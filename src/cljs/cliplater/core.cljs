@@ -37,23 +37,23 @@
     om/IRender
     (render [this]
       (html/html [:div.container#main
-                  [:form
+                  [:form.form-horizontal.clip-form
                    [:legend "Capture Url"]
                    [:div.control-group
                     [:label.control-label {:for "title"} "title"]
                     [:div.controls
-                     [:input {
+                     [:input.input-vlarge {
                              :name "title"
                              :value (om/get-state owner :title)}]]]
                    [:div.control-group
                     [:label.control-label {:for "url"} "url"]
                     [:div.controls
-                     [:input {
+                     [:input.input-vlarge {
                              :name "url"
                              :value (om/get-state owner :url)
                              }]]]
                    [:div.control-group
-                    [:div.controls.text-center
+                    [:div.controls
                      [:button.btn.btn-primary "Capture"]]]]]))))
 
 (defn ^:export run []

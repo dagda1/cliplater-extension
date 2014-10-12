@@ -1,5 +1,5 @@
 html {
-  width: 380px;
+  width: 500px;
   height: 200px;
 }
 
@@ -9,10 +9,6 @@ body {
   padding: 0;
   color: #6E6E6E;
   background-color: #F3F3F3;
-}
-
-.container {
-  width: 380px !important;
 }
 
 #status {
@@ -34,6 +30,49 @@ input:not([type="image"]) {
   box-sizing: inherit;
 }
 
-.form-horizontal .controls:first-child {
-  *padding-left: 20px !IMPORTANT;
+.form-horizontal .control-label {
+  float: left;
+  width: 39px;
+  padding-top: 5px;
+  text-align: right;
+}
+input:not([type="image"]) {
+  box-sizing: inherit;
+}
+
+.clip-form-legend {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.clip-form .control-input {
+  border-color: #C8C8C8;
+  box-shadow: none !important;
+}
+
+.clip-form .control-input:focus {
+  border-color: #0082DF;
+}
+
+.clip-form legend {
+  padding-left: 20px;
+}
+
+.clip-form .control-label {
+  width: 20px;
+  text-align: right;
+  padding-left: 20px;
+  font-weight: bold;
+}
+
+.form-horizontal .controls {
+  margin-left: 53px;
+}
+
+.clip-form .controls {
+  margin-left: 53;
+}
+
+.input-vlarge {
+  width: 430px;
 }
