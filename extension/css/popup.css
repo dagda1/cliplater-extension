@@ -33,3 +33,7 @@ body.is-logged-out #main {
 input:not([type="image"]) {
   box-sizing: inherit;
 }
+
+.form-horizontal .controls:first-child {
+  *padding-left: 20px !IMPORTANT;
+}
