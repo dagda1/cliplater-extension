@@ -16,26 +16,20 @@
     (go-loop []
       (when-let [{:keys [tabId changeInfo tab]} (<! ch)]
         (when (= "complete" (:status changeInfo))
-          (js/alert (str "tab updated: " (:url tab)))
+          (log/debug (str "tab updated: " (:url tab)))
           )
         (recur)
         )
       )
     )
 
-  (let [ch (tabs/tab-replaced-events)]
-    (go-loop []
-      (when-let [{:keys [added removed]} (<! ch)]
-        (js/alert (str "tab replaced " added " to " removed))
 
-        (let [ch (tabs/get-tab added)]
-          (async/take! ch
-                       (fn [{:keys [tab]} ch]
-                         (js/alert (:url tab))
-                         )
-                       )
-          )
-        )
-      )
-    )
+  (let [ch (tabs/tab-replaced-events)]
+		(go-loop []
+			(when-let [{:keys [added removed]} (<! ch)]
+				(let [ch (tabs/get-tab added)]
+					(async/take! ch
+						(fn [{:keys [tab]} ch]
+							(log/debug (str "replaced " (:url tab))))))
+				(recur))))
   )
