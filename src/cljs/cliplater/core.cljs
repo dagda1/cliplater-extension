@@ -2,18 +2,23 @@
   (:require
    [om.core :as om :include-macros true]
    [clojure.walk :as walk]
-   [cljs.core.async :as async]
+   [cljs.core.async :as async
+             :refer [<! >! chan close! timeout sliding-buffer put! alts! pub sub unsub unsub-all]]
    [om.dom :as dom :include-macros true]
    [sablono.core :as html :refer-macros [html]]
    [khroma.log :as log]
    [khroma.tabs :as tabs]
    [khroma.runtime :as runtime])
   (:require-macros
-   [cljs.core.async.macros :refer [go go-loop]]))
+   [cljs.core.async.macros :refer [go go-loop alt!]])
+  (:use
+   [cliplater.util :only [q]]
+   )
+  )
 
 (enable-console-print!)
 
-(defonce app-state (atom {:text "clip later"}))
+(defonce app-state (atom {:clips []}))
 
 (defn get-active-tab []
   (let [ch (async/chan)]
@@ -21,6 +26,14 @@
       (fn [result]
         (when-let [tab (first result)]
           (async/put! ch (walk/keywordize-keys (js->clj {:tab tab})))))) ch))
+
+(defn make-channels [] {
+   :save-clip (async/chan)
+})
+
+(defn create-clip [owner]
+  (js/alert owner)
+  )
 
 (defn ^:export root [data owner]
   (reify
@@ -34,10 +47,13 @@
           (let [{:keys [tab]} (<! ch)]
             (om/set-state! owner :title (:title tab))
             (om/set-state! owner :url (:url tab))))))
+    om/IDidMount
+    (did-mount [_]
+      (.addEventListener (q "a.btn.btn-primary") "click" (fn [e] (js/alert owner))))
     om/IRender
     (render [this]
       (html/html [:div.container#main
-                  [:form.form-horizontal.clip-form
+                  [:div.form-horizontal.clip-form
                    [:legend "Capture Url"]
                    [:div.control-group
                     [:label.control-label {:for "title"} "title"]
@@ -50,12 +66,12 @@
                     [:div.controls
                      [:input.input-vlarge {
                              :name "url"
-                             :value (om/get-state owner :url)
-                             }]]]
+                             :value (om/get-state owner :url)}]]]
                    [:div.control-group
                     [:div.controls
-                     [:button.btn.btn-primary "Capture"]]]]]))))
+                     [:a.btn.btn-primary  {:href "#"} "Capture"]]]]]))))
 
 (defn ^:export run []
-  (om/root root app-state
-           {:target (. js/document (getElementById "container"))}))
+  (let [channels (make-channels)]
+   (om/root root app-state
+            {:target (. js/document (getElementById "container")) :shared {:channels channels} } ) channels ))
