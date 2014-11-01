@@ -16,7 +16,13 @@
 
 (enable-console-print!)
 
-(defonce app-state (atom {:clips []}))
+(def app-state (atom {:clips []}))
+
+(def app-history (atom [@app-state]))
+
+(defn clips []
+  (om/ref-cursor (:clips (om/root-cursor app-state)))
+  )
 
 (defn get-active-tab []
   (let [ch (async/chan)]
@@ -60,8 +66,7 @@
     (did-mount [_]
       (.addEventListener (q "a.btn.btn-primary") "click" (fn [e]
                                                            (when-let [ch (om/get-shared owner [:channels :save-clip])]
-                                                             (async/put! ch {:title (om/get-state owner :title) :url (om/get-state owner :url)})
-                                                             ))))
+                                                             (async/put! ch {:title (om/get-state owner :title) :url (om/get-state owner :url)})))))
     om/IRender
     (render [this]
       (html/html [:div.container#main
