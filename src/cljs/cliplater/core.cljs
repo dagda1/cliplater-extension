@@ -12,9 +12,7 @@
   (:require-macros
    [cljs.core.async.macros :refer [go go-loop alt!]])
   (:use
-   [cliplater.util :only [q]]
-   )
-  )
+   [cliplater.util :only [q]]))
 
 (enable-console-print!)
 
@@ -27,21 +25,32 @@
         (when-let [tab (first result)]
           (async/put! ch (walk/keywordize-keys (js->clj {:tab tab})))))) ch))
 
-(defn make-channels [] {
+(defn make-channels []
+  {
    :save-clip (async/chan)
-})
+   })
 
-(defn create-clip [owner]
-  (js/alert owner)
-  )
+(def ch (chan 10))
+(go-loop []
+ (if-let [v (<! ch)]
+   (do (prn v) (recur))))
+(close! ch)
 
 (defn ^:export root [data owner]
+  (log/debug "in root")
   (reify
     om/IInitState
     (init-state [_]
       {:title "loading..." :url "loading...."})
     om/IWillMount
-    (will-mount [_]
+      (will-mount [_]
+        (when-let [save-ch (om/get-shared owner [:channels :save-clip])]
+          (go-loop []
+            (when-let [message (<! save-ch)]
+              (do
+                (log/debug message)
+                (recur)))))
+
       (let [ch (get-active-tab)]
         (go
           (let [{:keys [tab]} (<! ch)]
@@ -49,7 +58,10 @@
             (om/set-state! owner :url (:url tab))))))
     om/IDidMount
     (did-mount [_]
-      (.addEventListener (q "a.btn.btn-primary") "click" (fn [e] (js/alert owner))))
+      (.addEventListener (q "a.btn.btn-primary") "click" (fn [e]
+                                                           (when-let [ch (om/get-shared owner [:channels :save-clip])]
+                                                             (async/put! ch {:title (om/get-state owner :title) :url (om/get-state owner :url)})
+                                                             ))))
     om/IRender
     (render [this]
       (html/html [:div.container#main
