@@ -18,11 +18,8 @@
 
 (def app-state (atom {:clips []}))
 
-(def app-history (atom [@app-state]))
-
 (defn clips []
-  (om/ref-cursor (:clips (om/root-cursor app-state)))
-  )
+  (om/ref-cursor (:clips (om/root-cursor app-state))))
 
 (defn get-active-tab []
   (let [ch (async/chan)]
@@ -36,12 +33,6 @@
    :save-clip (async/chan)
    })
 
-(def ch (chan 10))
-(go-loop []
- (if-let [v (<! ch)]
-   (do (prn v) (recur))))
-(close! ch)
-
 (defn capture-panel [data owner]
   (reify
     om/IInitState
@@ -49,12 +40,14 @@
       {:title "loading..." :url "loading...."})
     om/IWillMount
       (will-mount [_]
-        (when-let [save-ch (om/get-shared owner [:channels :save-clip])]
-          (go-loop []
-            (when-let [message (<! save-ch)]
-              (do
-                (log/debug message)
-                (recur)))))
+        (let [xs (clips)]
+         (when-let [save-ch (om/get-shared owner [:channels :save-clip])]
+           (go-loop []
+             (when-let [clip (<! save-ch)]
+               (do
+                 (log/debug (str "received clip " clip))
+                 (om/transact! xs #(vec (conj % clip)))
+                 (recur))))))
 
       (let [ch (get-active-tab)]
         (go
@@ -96,34 +89,16 @@
          [:tbody
           [:tr
            [:td
-            [:a {:href "#"} "Some link to somewhere"]
-           ]
+            [:a {:href "#"} "Some link to somewhere"]]
            [:td.delete
-            [:a {:href "#"} "delete"]
-           ]
-          ]
-          [:tr
-           [:td
-            [:a {:href "#"} "Somewhere else goes this"]
-           ]
-           [:td.delete
-            [:a {:href "#"} "delete"]
-           ]
-          ]
-         ]
-        ]
-       ]
-       )
-      )
-    )
-  )
+            [:a {:href "#"} "delete"]]]]]]))))
 
 (defn ^:export root [data owner]
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:id "main" :class "container row-fluid"}
-        (dom/div #js {:class "span9"}
+      (dom/div #js {:id "main" :className "container row-fluid"}
+        (dom/div nil
          (om/build capture-panel data))
          (om/build clips data)))))
 
