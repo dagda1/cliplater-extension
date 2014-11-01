@@ -33,11 +33,15 @@
    :save-clip (async/chan)
    })
 
-(defn capture-panel [data owner]
+(defn clip-view [clip]
+  [:tr
+   [:td
+    [:a {:href (:url clip) :target "new"} (:title clip)]]
+   [:td.delete
+    [:a {:href "#"} "delete"]]])
+
+(defn clips-view [data owner]
   (reify
-    om/IInitState
-    (init-state [_]
-      {:title "loading..." :url "loading...."})
     om/IWillMount
       (will-mount [_]
         (let [xs (clips)]
@@ -47,18 +51,37 @@
                (do
                  (log/debug (str "received clip " clip))
                  (om/transact! xs #(vec (conj % clip)))
-                 (recur))))))
+                 (recur)))))))
+    om/IRender
+    (render [this]
+      (let [xs (om/observe owner (clips))]
+       (html/html
+        [:div.well
+         [:table.table.table-bordered.table-hover.table-striped
+          [:tbody
+           (if (= (count xs) 0)
+             [:tr
+              [:td.text-center {:colSpan "2"} "No Clips!"]]
+             (map clip-view xs))]]])))))
 
-      (let [ch (get-active-tab)]
-        (go
-          (let [{:keys [tab]} (<! ch)]
-            (om/set-state! owner :title (:title tab))
-            (om/set-state! owner :url (:url tab))))))
+(defn capture-panel [data owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:title "loading..." :url "loading...."})
+    om/IWillMount
+      (will-mount [_]
+        (let [ch (get-active-tab)]
+          (go
+            (let [{:keys [tab]} (<! ch)]
+              (om/set-state! owner :title (:title tab))
+              (om/set-state! owner :url (:url tab))))))
     om/IDidMount
     (did-mount [_]
-      (.addEventListener (q "a.btn.btn-primary") "click" (fn [e]
-                                                           (when-let [ch (om/get-shared owner [:channels :save-clip])]
-                                                             (async/put! ch {:title (om/get-state owner :title) :url (om/get-state owner :url)})))))
+      (.addEventListener (q "a.btn.btn-primary") "click"
+                         (fn [e]
+                           (when-let [ch (om/get-shared owner [:channels :save-clip])]
+                             (async/put! ch {:title (om/get-state owner :title) :url (om/get-state owner :url)})))))
     om/IRender
     (render [this]
       (html/html [:div.form-horizontal.clip-form
@@ -79,20 +102,6 @@
                     [:div.controls
                      [:a.btn.btn-primary  {:href "#"} "Capture"]]]]))))
 
-(defn clips [data owner]
-  (reify
-    om/IRender
-    (render [this]
-      (html/html
-       [:div.well
-        [:table.table.table-bordered.table-hover.table-striped
-         [:tbody
-          [:tr
-           [:td
-            [:a {:href "#"} "Some link to somewhere"]]
-           [:td.delete
-            [:a {:href "#"} "delete"]]]]]]))))
-
 (defn ^:export root [data owner]
   (reify
     om/IRender
@@ -100,7 +109,7 @@
       (dom/div #js {:id "main" :className "container row-fluid"}
         (dom/div nil
          (om/build capture-panel data))
-         (om/build clips data)))))
+         (om/build clips-view data)))))
 
 (defn ^:export run []
   (let [channels (make-channels)]
