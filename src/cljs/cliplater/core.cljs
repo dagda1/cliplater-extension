@@ -42,8 +42,7 @@
    (do (prn v) (recur))))
 (close! ch)
 
-(defn ^:export root [data owner]
-  (log/debug "in root")
+(defn capture-panel [data owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -69,8 +68,7 @@
                                                              (async/put! ch {:title (om/get-state owner :title) :url (om/get-state owner :url)})))))
     om/IRender
     (render [this]
-      (html/html [:div.container#main
-                  [:div.form-horizontal.clip-form
+      (html/html [:div.form-horizontal.clip-form
                    [:legend "Capture Url"]
                    [:div.control-group
                     [:label.control-label {:for "title"} "title"]
@@ -86,7 +84,48 @@
                              :value (om/get-state owner :url)}]]]
                    [:div.control-group
                     [:div.controls
-                     [:a.btn.btn-primary  {:href "#"} "Capture"]]]]]))))
+                     [:a.btn.btn-primary  {:href "#"} "Capture"]]]]))))
+
+(defn clips [data owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html/html
+       [:div.well
+        [:table.table.table-bordered.table-hover.table-striped
+         [:tbody
+          [:tr
+           [:td
+            [:a {:href "#"} "Some link to somewhere"]
+           ]
+           [:td.delete
+            [:a {:href "#"} "delete"]
+           ]
+          ]
+          [:tr
+           [:td
+            [:a {:href "#"} "Somewhere else goes this"]
+           ]
+           [:td.delete
+            [:a {:href "#"} "delete"]
+           ]
+          ]
+         ]
+        ]
+       ]
+       )
+      )
+    )
+  )
+
+(defn ^:export root [data owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:id "main" :class "container row-fluid"}
+        (dom/div #js {:class "span9"}
+         (om/build capture-panel data))
+         (om/build clips data)))))
 
 (defn ^:export run []
   (let [channels (make-channels)]
