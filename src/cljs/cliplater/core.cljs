@@ -3,12 +3,14 @@
    [om.core :as om :include-macros true]
    [clojure.walk :as walk]
    [cljs.core.async :as async
-             :refer [<! >! chan close! timeout sliding-buffer put! alts! pub sub unsub unsub-all]]
+             :refer [<! >! chan close! timeout sliding-buffer put! alts! pub sub unsub unsub-all tap mult]]
    [om.dom :as dom :include-macros true]
    [sablono.core :as html :refer-macros [html]]
    [khroma.log :as log]
    [khroma.tabs :as tabs]
-   [khroma.runtime :as runtime])
+   [khroma.runtime :as runtime]
+   [cliplater.components :as ui]
+   )
   (:require-macros
    [cljs.core.async.macros :refer [go go-loop alt!]])
   (:use
@@ -31,6 +33,7 @@
 (defn make-channels []
   {
    :save-clip (async/chan)
+   :tab-changed (async/chan 1)
    })
 
 (defn clip-view [clip]
@@ -72,10 +75,14 @@
     om/IWillMount
       (will-mount [_]
         (let [ch (get-active-tab)]
-          (go
+          (go-loop []
             (let [{:keys [tab]} (<! ch)]
               (om/set-state! owner :title (:title tab))
-              (om/set-state! owner :url (:url tab))))))
+              (om/set-state! owner :url (:url tab))
+              (when-let [tab-changed (om/get-shared owner [:channels :tab-changed])]
+               (put! tab-changed tab))
+              (recur)
+              ))))
     om/IDidMount
     (did-mount [_]
       (.addEventListener (q "a.btn.btn-primary") "click"
@@ -84,20 +91,10 @@
                              (async/put! ch {:title (om/get-state owner :title) :url (om/get-state owner :url)})))))
     om/IRender
     (render [this]
-      (html/html [:div.form-horizontal.clip-form
+      (html/html [:div.clip-form
                    [:legend "Capture Url"]
-                   [:div.control-group
-                    [:label.control-label {:for "title"} "title"]
-                    [:div.controls
-                     [:input.input-vlarge {
-                             :name "title"
-                             :value (om/get-state owner :title)}]]]
-                   [:div.control-group
-                    [:label.control-label {:for "url"} "url"]
-                    [:div.controls
-                     [:input.input-vlarge {
-                             :name "url"
-                             :value (om/get-state owner :url)}]]]
+                   (om/build ui/text-box data {:opts {:value :title}})
+                   (om/build ui/text-box data {:opts {:value :url}})
                    [:div.control-group
                     [:div.controls
                      [:a.btn.btn-primary  {:href "#"} "Capture"]]]]))))
@@ -112,6 +109,7 @@
          (om/build clips-view data)))))
 
 (defn ^:export run []
-  (let [channels (make-channels)]
+  (let [channels (make-channels)
+        tab-mult (async/mult (:tab-changed channels))]
    (om/root root app-state
-            {:target (. js/document (getElementById "container")) :shared {:channels channels} } ) channels ))
+            {:target (. js/document (getElementById "container")) :shared {:channels channels :tab-mult tab-mult}}) channels ))

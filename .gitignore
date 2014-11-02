@@ -8,5 +8,6 @@ pom.xml
 .lein-repl-history
 .lein-plugins/
 .lein*
+.nrepl*
 extension/js/compiled/**
 target/**
