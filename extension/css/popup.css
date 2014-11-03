@@ -30,17 +30,27 @@ input:not([type="image"]) {
   box-sizing: inherit;
 }
 
-.form-horizontal .control-label {
-  float: left;
-  width: 39px;
-  padding-top: 5px;
-  text-align: right;
-}
 input:not([type="image"]) {
   box-sizing: inherit;
 }
 
-.clip-form-legend {
+.clip-form {
+  margin: 0 15px 15px;
+}
+
+.clip-form .control-group {
+  margin-top: 15px;
+}
+
+.clip-form .controls {
+  margin-top: 10px;
+}
+
+.clip-form .control-label {
+  padding-left: 0 !IMPORTANT;
+}
+
+.clip-form legend {
   font-size: 24px;
   font-weight: bold;
 }
@@ -65,16 +75,8 @@ input:not([type="image"]) {
   font-weight: bold;
 }
 
-.form-horizontal .controls {
-  margin-left: 53px;
-}
-
-.clip-form .controls {
-  margin-left: 53;
-}
-
-.input-vlarge {
-  width: 430px;
+.form-control {
+  width: 100%;
 }
 
 .well {

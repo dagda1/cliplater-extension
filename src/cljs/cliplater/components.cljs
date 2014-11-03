@@ -18,7 +18,6 @@
         (tap (om/get-shared owner [:tab-mult]) ch)
         (go-loop []
           (when-let [tab (<! ch)]
-            (log/debug (str "we have received " (value tab)))
             (om/set-state! owner value (value tab))
             (recur)))))
     om/IRender
@@ -28,6 +27,6 @@
         [:div.form-group
          [:label.control-label {:htmlFor label} label]
          [:div.controls
-          [:input.input-vlarge {
+          [:input.form-control {
                                 :name label
                                 :value (om/get-state owner value)}]]])))))
