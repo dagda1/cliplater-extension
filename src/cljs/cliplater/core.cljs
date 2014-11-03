@@ -9,8 +9,7 @@
    [khroma.log :as log]
    [khroma.tabs :as tabs]
    [khroma.runtime :as runtime]
-   [cliplater.components :as ui]
-   )
+   [cliplater.components :as ui])
   (:require-macros
    [cljs.core.async.macros :refer [go go-loop alt!]])
   (:use
@@ -18,10 +17,7 @@
 
 (enable-console-print!)
 
-(def app-state (atom {:clips []}))
-
-(defn clips []
-  (om/ref-cursor (:clips (om/root-cursor app-state))))
+(def app-state (atom {:clips [] :current-tab {:title "loading..." :url "loading...."}}))
 
 (defn get-active-tab []
   (let [ch (async/chan)]
@@ -30,12 +26,6 @@
         (when-let [tab (first result)]
           (async/put! ch (walk/keywordize-keys (js->clj {:tab tab})))))) ch))
 
-(defn make-channels []
-  {
-   :save-clip (async/chan)
-   :tab-changed (async/chan 1)
-   })
-
 (defn clip-view [clip]
   [:tr
    [:td
@@ -43,31 +33,20 @@
    [:td.delete
     [:a {:href "#"} "delete"]]])
 
-(defn clips-view [data owner]
+(defn clips-view [clips]
   (reify
-    om/IWillMount
-      (will-mount [_]
-        (let [xs (clips)]
-         (when-let [save-ch (om/get-shared owner [:channels :save-clip])]
-           (go-loop []
-             (when-let [clip (<! save-ch)]
-               (do
-                 (log/debug (str "received clip " clip))
-                 (om/transact! xs #(vec (conj % clip)))
-                 (recur)))))))
     om/IRender
     (render [this]
-      (let [xs (om/observe owner (clips))]
-       (html/html
+      (html/html
         [:div.well
          [:table.table.table-bordered.table-hover.table-striped
           [:tbody
-           (if (= (count xs) 0)
+           (if (empty? clips)
              [:tr
               [:td.text-center {:colSpan "2"} "No Clips!"]]
-             (map clip-view xs))]]])))))
+             (map clip-view clips))]]]))))
 
-(defn capture-panel [data owner]
+(defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab}]
   (reify
     om/IInitState
     (init-state [_]
@@ -77,24 +56,18 @@
         (let [ch (get-active-tab)]
           (go-loop []
             (let [{:keys [tab]} (<! ch)]
-              (om/set-state! owner :title (:title tab))
-              (om/set-state! owner :url (:url tab))
-              (when-let [tab-changed (om/get-shared owner [:channels :tab-changed])]
-               (put! tab-changed tab))
-              (recur)
-              ))))
+              (om/update! current-tab tab)
+              (recur)))))
     om/IDidMount
     (did-mount [_]
       (.addEventListener (q "a.btn.btn-primary") "click"
-                         (fn [e]
-                           (when-let [ch (om/get-shared owner [:channels :save-clip])]
-                             (async/put! ch {:title (om/get-state owner :title) :url (om/get-state owner :url)})))))
+                         #(om/transact! clips (fn [clips] (conj clips @current-tab)))))
     om/IRender
     (render [this]
       (html/html [:div.clip-form
                    [:legend "Capture Url"]
-                   (om/build ui/text-box data {:opts {:value :title}})
-                   (om/build ui/text-box data {:opts {:value :url}})
+                   (om/build ui/text-box title {:opts {:label "title"}})
+                   (om/build ui/text-box url {:opts {:label "value"}})
                    [:div.control-group
                     [:div.controls
                      [:a.btn.btn-primary  {:href "#"} "Capture"]]]]))))
@@ -106,10 +79,8 @@
       (dom/div #js {:id "main" :className "container row-fluid"}
         (dom/div nil
          (om/build capture-panel data))
-         (om/build clips-view data)))))
+         (om/build clips-view (:clips data))))))
 
 (defn ^:export run []
-  (let [channels (make-channels)
-        tab-mult (async/mult (:tab-changed channels))]
-   (om/root root app-state
-            {:target (. js/document (getElementById "container")) :shared {:channels channels :tab-mult tab-mult}}) channels ))
+  (om/root root app-state
+            {:target (. js/document (getElementById "container")) }))
