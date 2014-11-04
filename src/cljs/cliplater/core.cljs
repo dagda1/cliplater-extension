@@ -82,8 +82,8 @@
     (render [this]
       (html/html [:div.clip-form
                    [:legend "Capture Url"]
-                   (om/build ui/text-box current-tab {:opts {:label "title" :k :title}})
-                   (om/build ui/text-box current-tab {:opts {:label "url" :k :url}})
+                   (om/build ui/text-box current-tab {:opts {:label "title" :k :title :needs-focus true}})
+                   (om/build ui/text-box current-tab {:opts {:label "url" :k :url :needs-focus false}})
                    [:div.control-group
                     [:div.controls
                      [:a.btn.btn-primary {
