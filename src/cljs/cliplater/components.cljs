@@ -19,5 +19,4 @@
                               :ref label
                               :name label
                               :value (k c)
-                              :onChange #(om/update! c k (.. % -target -value))
-                              }]]])))
+                              :onChange #(om/update! c k (.. % -target -value))}]]])))

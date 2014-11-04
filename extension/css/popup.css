@@ -75,6 +75,10 @@ input:not([type="image"]) {
   font-weight: bold;
 }
 
+.clip-form .btn-primary {
+  margin-right: 5px;
+}
+
 .form-control {
   width: 100%;
 }

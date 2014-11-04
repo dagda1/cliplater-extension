@@ -46,7 +46,7 @@
               [:td.text-center {:colSpan "2"} "No Clips!"]]
              (map clip-view clips))]]]))))
 
-(defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab}]
+(defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -58,10 +58,6 @@
             (let [{:keys [tab]} (<! ch)]
               (om/update! current-tab tab)
               (recur)))))
-    om/IDidMount
-    (did-mount [_]
-      (.addEventListener (q "a.btn.btn-primary") "click"
-                         #(om/transact! clips (fn [clips] (conj clips @current-tab)))))
     om/IRender
     (render [this]
       (html/html [:div.clip-form
@@ -70,7 +66,20 @@
                    (om/build ui/text-box current-tab {:opts {:label "url" :k :url}})
                    [:div.control-group
                     [:div.controls
-                     [:a.btn.btn-primary  {:ref "new-clip" :href "#"} "Capture"]]]]))))
+                     [:a.btn.btn-primary {
+                                          :ref "copy-clip"
+                                          :href "#"
+                                          :onClick (fn [e]
+                                                     (let [input (q "input[name=url]")]
+                                                       (set! (.-value input) (:url @current-tab))
+                                                       (.select input)
+                                                       (.execCommand js/document "copy")))
+                                          } "Copy"]
+                     [:a.btn.btn-success  {
+                                           :ref "new-clip"
+                                           :href "#"
+                                           :onClick #(om/transact! clips (fn [clips] (conj clips @current-tab)))
+                                           } "Capture"]]]]))))
 
 (defn ^:export root [data owner]
   (reify
