@@ -13,7 +13,7 @@
   (:require-macros
    [cljs.core.async.macros :refer [go go-loop alt!]])
   (:use
-   [cliplater.util :only [q]]))
+   [cliplater.util :only [q guid]]))
 
 (enable-console-print!)
 
@@ -26,18 +26,19 @@
         (when-let [tab (first result)]
           (async/put! ch (walk/keywordize-keys (js->clj {:tab tab})))))) ch))
 
+(defn save-clip [data new-clip]
+  (om/transact! data :clips (fn [clips] (conj clips new-clip))))
+
 (defn destroy-clip [data clip]
-  (om/transact! data :clips (fn [clips] (into [] (remove #(= % clip) clips)))))
+  (om/transact! data :clips (fn [clips] (into [] (remove #(= (:id %) (:id clip)) clips)))))
 
 (defn handle-event [type data clip]
   (case type
-    :destroy (destroy-clip data clip)
-    ))
+    :save (save-clip data clip)
+    :destroy (destroy-clip data clip)))
 
 (defn make-channels []
-  {
-   :event-channel (chan)
-   })
+  {:event-channel (chan)})
 
 (defn clip-view [clip owner]
   (om/component
@@ -97,7 +98,10 @@
                      [:a.btn.btn-success  {
                                            :ref "new-clip"
                                            :href "#"
-                                           :onClick #(om/transact! clips (fn [clips] (conj clips {:title (:title @current-tab) :url (:url @current-tab)})))
+                                           :onClick (fn [e]
+                                                      (let [comm (om/get-shared owner [:channels :event-channel])
+                                                            new-clip {:id (guid) :title (:title @current-tab) :url (:url @current-tab)}]
+                                                        (put! comm [:save new-clip])))
                                            } "Capture"]]]]))))
 
 (defn ^:export root [data owner]
@@ -108,11 +112,8 @@
         (om/set-state! owner :comm comm)
           (go-loop []
             (let [[type clip] (<! comm)]
-              (handle-event type data clip)
-              )
-            )
-          )
-      )
+              (handle-event type data clip))
+              (recur))))
     om/IRender
     (render [this]
       (dom/div #js {:id "main" :className "container row-fluid"}
