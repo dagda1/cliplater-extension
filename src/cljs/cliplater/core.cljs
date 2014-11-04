@@ -26,14 +26,33 @@
         (when-let [tab (first result)]
           (async/put! ch (walk/keywordize-keys (js->clj {:tab tab})))))) ch))
 
-(defn clip-view [clip]
-  [:tr
-   [:td
-    [:a {:href (:url clip) :target "new"} (:title clip)]]
-   [:td.delete
-    [:a {:href "#"} "delete"]]])
+(defn destroy-clip [data clip]
+  (om/transact! data :clips (fn [clips] (into [] (remove #(= % clip) clips)))))
 
-(defn clips-view [clips]
+(defn handle-event [type data clip]
+  (case type
+    :destroy (destroy-clip data clip)
+    ))
+
+(defn make-channels []
+  {
+   :event-channel (chan)
+   })
+
+(defn clip-view [clip owner]
+  (om/component
+   (let [comm (om/get-shared owner [:channels :event-channel])]
+    (html/html
+     [:tr
+      [:td
+       [:a {:href (:url clip) :target "new"} (:title clip)]]
+      [:td.delete
+       [:a.btn.btn-danger {:href "#"
+                           :ref "delete-clip"
+                           :onClick #(put! comm [:destroy @clip])
+                           } "delete"]]]))))
+
+(defn clips-view [{:keys [clips]} owner]
   (reify
     om/IRender
     (render [this]
@@ -44,7 +63,7 @@
            (if (empty? clips)
              [:tr
               [:td.text-center {:colSpan "2"} "No Clips!"]]
-             (map clip-view clips))]]]))))
+             (om/build-all clip-view clips))]]]))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify
@@ -78,18 +97,30 @@
                      [:a.btn.btn-success  {
                                            :ref "new-clip"
                                            :href "#"
-                                           :onClick #(om/transact! clips (fn [clips] (conj clips @current-tab)))
+                                           :onClick #(om/transact! clips (fn [clips] (conj clips {:title (:title @current-tab) :url (:url @current-tab)})))
                                            } "Capture"]]]]))))
 
 (defn ^:export root [data owner]
   (reify
+    om/IWillMount
+    (will-mount [this]
+      (let [comm (om/get-shared owner [:channels :event-channel])]
+        (om/set-state! owner :comm comm)
+          (go-loop []
+            (let [[type clip] (<! comm)]
+              (handle-event type data clip)
+              )
+            )
+          )
+      )
     om/IRender
     (render [this]
       (dom/div #js {:id "main" :className "container row-fluid"}
         (dom/div nil
          (om/build capture-panel data))
-         (om/build clips-view (:clips data))))))
+         (om/build clips-view data)))))
 
 (defn ^:export run []
-  (om/root root app-state
-            {:target (. js/document (getElementById "container")) }))
+  (let [channels (make-channels)]
+   (om/root root app-state
+            {:target (. js/document (getElementById "container")) :shared {:channels channels} })))
