@@ -66,11 +66,11 @@
     (render [this]
       (html/html [:div.clip-form
                    [:legend "Capture Url"]
-                   (om/build ui/text-box title {:opts {:label "title"}})
-                   (om/build ui/text-box url {:opts {:label "value"}})
+                   (om/build ui/text-box current-tab {:opts {:label "title" :k :title}})
+                   (om/build ui/text-box current-tab {:opts {:label "url" :k :url}})
                    [:div.control-group
                     [:div.controls
-                     [:a.btn.btn-primary  {:href "#"} "Capture"]]]]))))
+                     [:a.btn.btn-primary  {:ref "new-clip" :href "#"} "Capture"]]]]))))
 
 (defn ^:export root [data owner]
   (reify

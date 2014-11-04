@@ -7,14 +7,17 @@
    [khroma.log :as log])
   (:require-macros
    [cljs.core.async.macros :refer [go go-loop alt!]])
-  )
+  (:use [cliplater.util :only [q]]))
 
-(defn text-box [value _ {:keys [label]}]
+(defn text-box [c owner {:keys [k label]}]
   (om/component
    (html/html
-        [:div.form-group
-         [:label.control-label {:htmlFor label} label]
-         [:div.controls
-          [:input.form-control {
-                                :name label
-                                :value value}]]])))
+      [:div.form-group
+       [:label.control-label {:htmlFor label} label]
+       [:div.controls
+        [:input.form-control {
+                              :ref label
+                              :name label
+                              :value (k c)
+                              :onChange #(om/update! c k (.. % -target -value))
+                              }]]])))
