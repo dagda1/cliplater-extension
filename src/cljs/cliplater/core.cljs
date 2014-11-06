@@ -41,17 +41,19 @@
   {:event-channel (chan)})
 
 (defn clip-view [clip owner]
-  (om/component
-   (let [comm (om/get-shared owner [:channels :event-channel])]
-    (html/html
-     [:tr
-      [:td
-       [:a {:href (:url clip) :target "new"} (:title clip)]]
-      [:td.delete
-       [:a.btn.btn-danger {:href "#"
-                           :ref "delete-clip"
-                           :onClick #(put! comm [:destroy @clip])
-                           } "delete"]]]))))
+  (reify
+   om/IRender
+   (render [this]
+    (let [comm (om/get-shared owner [:channels :event-channel])]
+      (html/html
+       [:tr.clip {:ref "clip-row"}
+        [:td
+         [:a {:href (:url clip) :target "new"} (:title clip)]]
+        [:td.delete
+         [:a.btn.btn-danger {:href "#"
+                             :ref "delete-clip"
+                             :onClick #(put! comm [:destroy @clip])
+                             } "delete"]]])))))
 
 (defn clips-view [{:keys [clips]} owner]
   (reify
@@ -64,7 +66,7 @@
            (if (empty? clips)
              [:tr
               [:td.text-center {:colSpan "2"} "No Clips!"]]
-             (om/build-all clip-view clips))]]]))))
+             (om/build-all clip-view clips {:key :id}))]]]))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify

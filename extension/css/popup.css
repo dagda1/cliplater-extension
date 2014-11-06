@@ -119,3 +119,15 @@ input:not([type="image"]) {
 .well .table tr td a:hover {
   text-decoration: none;
 }
+
+@-webkit-keyframes pulse {
+ from {background-color: #baf2b5}
+ to {background-color: inherit;}
+}
+
+.clip td {
+  -webkit-animation-name: pulse;
+  -webkit-animation-iteration-count: 3s;
+  -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+  -webkit-animation-duration: 1s;
+}
