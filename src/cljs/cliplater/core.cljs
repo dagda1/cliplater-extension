@@ -1,10 +1,10 @@
 (ns cliplater.core
   (:require
    [om.core :as om :include-macros true]
+   [om.dom :as dom :include-macros true]
    [clojure.walk :as walk]
    [cljs.core.async :as async
-             :refer [<! >! chan close! timeout sliding-buffer put! alts! pub sub unsub unsub-all tap mult]]
-   [om.dom :as dom :include-macros true]
+             :refer [<! >! chan close! timeout put! alts!]]
    [sablono.core :as html :refer-macros [html]]
    [khroma.log :as log]
    [khroma.tabs :as tabs]
@@ -13,7 +13,8 @@
   (:require-macros
    [cljs.core.async.macros :refer [go go-loop alt!]])
   (:use
-   [cliplater.util :only [q guid]]))
+   [cliplater.util :only [q guid]]
+   [cliplater.animate :only [animate]]))
 
 (enable-console-print!)
 
@@ -42,11 +43,18 @@
 
 (defn clip-view [clip owner]
   (reify
+   om/IDidMount
+   (did-mount [_]
+     (let [node (om/get-node owner)
+           classes (str (.-className node) " in")]
+       (.setTimeout js/window #(set! (.-className node) classes) 250)
+       )
+     )
    om/IRender
    (render [this]
     (let [comm (om/get-shared owner [:channels :event-channel])]
       (html/html
-       [:tr.clip {:ref "clip-row"}
+       [:tr.clip.fade {:ref "clip-row"}
         [:td
          [:a {:href (:url clip) :target "new"} (:title clip)]]
         [:td.delete
@@ -66,7 +74,7 @@
            (if (empty? clips)
              [:tr
               [:td.text-center {:colSpan "2"} "No Clips!"]]
-             (om/build-all clip-view clips {:key :id}))]]]))))
+             (map #(om/build (animate clip-view) % {:key :id}) clips))]]]))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify
@@ -125,5 +133,6 @@
 
 (defn ^:export run []
   (let [channels (make-channels)]
-   (om/root root app-state
-            {:target (. js/document (getElementById "container")) :shared {:channels channels} })))
+    (om/root root app-state
+            {:target (. js/document (getElementById "container")) :shared {:channels channels} }))
+  )

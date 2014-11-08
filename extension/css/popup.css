@@ -125,9 +125,18 @@ input:not([type="image"]) {
  to {background-color: inherit;}
 }
 
-.clip td {
-  -webkit-animation-name: pulse;
-  -webkit-animation-iteration-count: 3s;
-  -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
-  -webkit-animation-duration: 1s;
+/* .clip td { */
+/*   -webkit-animation-name: pulse; */
+/*   -webkit-animation-iteration-count: 3s; */
+/*   -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0); */
+/*   -webkit-animation-duration: 1s; */
+/* } */
+
+.fade {
+  .transition(opacity .15s linear);
+  opacity: 0;
+}
+
+.fade.in {
+  opacity: 1;
 }
