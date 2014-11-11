@@ -47,9 +47,11 @@
    (did-mount [_]
      (let [node (om/get-node owner)
            classes (str (.-className node) " in")]
-       (.setTimeout js/window #(set! (.-className node) classes) 250)
-       )
-     )
+       (.setTimeout js/window #(set! (.-className node) classes) 250)))
+   om/IShouldUpdate
+   ;; (should-update [_ next-props _]
+   ;;   (log/debug {:props (om/get-props owner) :next-props next-props })
+   ;;   )
    om/IRender
    (render [this]
     (let [comm (om/get-shared owner [:channels :event-channel])]
@@ -74,7 +76,8 @@
            (if (empty? clips)
              [:tr
               [:td.text-center {:colSpan "2"} "No Clips!"]]
-             (map #(om/build (animate clip-view) % {:key :id}) clips))]]]))))
+             (map #(om/build animate % {:opts {:id {:id %} :build-fn (om/build clip-view % {:key {:id % }} )}} )clips)
+             )]]]))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify
