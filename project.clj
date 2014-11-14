@@ -6,7 +6,6 @@
                  [org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2371"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [sablono "0.2.22"]
                  [om "0.8.0-alpha1"]
                  [cljs-http "0.1.16"]
                  [com.cemerick/piggieback "0.1.3"]

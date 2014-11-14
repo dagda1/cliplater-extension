@@ -5,7 +5,6 @@
    [clojure.walk :as walk]
    [cljs.core.async :as async
              :refer [<! >! chan close! timeout put! alts!]]
-   [sablono.core :as html :refer-macros [html]]
    [khroma.log :as log]
    [khroma.tabs :as tabs]
    [khroma.runtime :as runtime]
@@ -60,8 +59,7 @@
                      (dom/a #js {:className "btn btn-danger"
                                  :ref "delete-clip"
                                  :onClick #(put! (om/get-shared owner [:channels :event-channel]) [:destroy @clip])
-                                 } "delete")
-                     )))))
+                                 } "delete"))))))
 
 (defn clips-view [{:keys [clips]} owner]
   (reify
@@ -96,29 +94,29 @@
               (recur)))))
     om/IRender
     (render [this]
-      (html/html [:div.clip-form
-                   [:legend "Capture Url"]
-                   (om/build ui/text-box current-tab {:opts {:label "title" :k :title :needs-focus true}})
-                   (om/build ui/text-box current-tab {:opts {:label "url" :k :url :needs-focus false}})
-                   [:div.control-group
-                    [:div.controls
-                     [:a.btn.btn-primary {
-                                          :ref "copy-clip"
-                                          :href "#"
-                                          :onClick (fn [e]
-                                                     (let [input (q "input[name=url]")]
-                                                       (set! (.-value input) (:url @current-tab))
-                                                       (.select input)
-                                                       (.execCommand js/document "copy")))
-                                          } "Copy"]
-                     [:a.btn.btn-success  {
-                                           :ref "new-clip"
-                                           :href "#"
-                                           :onClick (fn [e]
-                                                      (let [comm (om/get-shared owner [:channels :event-channel])
-                                                            new-clip {:id (guid) :title (:title @current-tab) :url (:url @current-tab)}]
-                                                        (put! comm [:save new-clip])))
-                                           } "Capture"]]]]))))
+      (dom/div #js {:className "clip-form"}
+               (dom/legend nil "Capture Url")
+               (om/build ui/text-box current-tab {:opts {:label "title" :k :title :needs-focus true}})
+               (om/build ui/text-box current-tab {:opts {:label "url" :k :url :needs-focus false}})
+               (dom/div #js {:className "control-group"}
+                    (dom/div #js {:className "controls"}
+                             (dom/a #js {:className "btn btn-primary"
+                                         :ref "copy-clip"
+                                         :href "#"
+                                         :onClick (fn [e]
+                                                    (let [input (q "input[name=url]")]
+                                                      (set! (.-value input) (:url @current-tab))
+                                                      (.select input)
+                                                      (.execCommand js/document "copy")))}
+                                    "Copy")
+                             (dom/a #js {:className "btn btn-success"
+                                         :ref "new-clip"
+                                         :href "#"
+                                         :onClick (fn [e]
+                                                    (let [comm (om/get-shared owner [:channels :event-channel])
+                                                          new-clip {:id (guid) :title (:title @current-tab) :url (:url @current-tab)}]
+                                                      (put! comm [:save new-clip])))
+                                         } "Capture" )))))))
 
 (defn ^:export root [data owner]
   (reify

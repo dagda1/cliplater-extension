@@ -2,7 +2,6 @@
   (:require
    [om.core :as om :include-macros true]
    [om.dom :as dom :include-macros true]
-   [sablono.core :as html :refer-macros [html]]
    [cljs.core.async :as async
              :refer [<! >! chan close! timeout put! alts!]]
    [khroma.log :as log]))
@@ -14,5 +13,4 @@
       "animate")
     om/IRender
     (render [this]
-      (html/html
-       build-fn))))
+      build-fn)))
