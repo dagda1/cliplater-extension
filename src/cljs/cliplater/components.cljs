@@ -14,6 +14,9 @@
 
 (defn text-box [c owner {:keys [k label needs-focus]}]
   (reify
+    om/IDisplayName
+    (display-name [_]
+      "text-box")
     om/IDidMount
     (did-mount [_]
       (when needs-focus

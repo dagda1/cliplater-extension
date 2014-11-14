@@ -5,12 +5,14 @@
    [sablono.core :as html :refer-macros [html]]
    [cljs.core.async :as async
              :refer [<! >! chan close! timeout put! alts!]]
-   [khroma.log :as log]
-   ))
+   [khroma.log :as log]))
 
 (defn animate [cursor owner {:keys [build-fn id]}]
   (reify
-      om/IRender
-      (render [this]
-        (html/html
-         build-fn))))
+    om/IDisplayName
+    (display-name [_]
+      "animate")
+    om/IRender
+    (render [this]
+      (html/html
+       build-fn))))

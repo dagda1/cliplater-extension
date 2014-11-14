@@ -43,44 +43,47 @@
 
 (defn clip-view [clip owner]
   (reify
+   om/IDisplayName
+   (display-name [_]
+     "clip-view")
    om/IDidMount
    (did-mount [_]
      (let [node (om/get-node owner)
            classes (str (.-className node) " in")]
        (.setTimeout js/window #(set! (.-className node) classes) 250)))
-   om/IShouldUpdate
-   ;; (should-update [_ next-props _]
-   ;;   (log/debug {:props (om/get-props owner) :next-props next-props })
-   ;;   )
    om/IRender
    (render [this]
-    (let [comm (om/get-shared owner [:channels :event-channel])]
-      (html/html
-       [:tr.clip.fade {:ref "clip-row"}
-        [:td
-         [:a {:href (:url clip) :target "new"} (:title clip)]]
-        [:td.delete
-         [:a.btn.btn-danger {:href "#"
-                             :ref "delete-clip"
-                             :onClick #(put! comm [:destroy @clip])
-                             } "delete"]]])))))
+     (dom/tr #js {:className "clip fade" :ref "clip-row" }
+             (dom/td nil
+                     (dom/a #js {:href (:url clip) :target "new"} (:title clip)))
+             (dom/td #js {:className "delete"}
+                     (dom/a #js {:className "btn btn-danger"
+                                 :ref "delete-clip"
+                                 :onClick #(put! (om/get-shared owner [:channels :event-channel]) [:destroy @clip])
+                                 } "delete")
+                     )))))
 
 (defn clips-view [{:keys [clips]} owner]
   (reify
+    om/IDisplayName
+    (display-name [_]
+      "clips-view")
     om/IRender
     (render [this]
-      (html/html
-        [:div.well
-         [:table.table.table-bordered.table-hover.table-striped
-          [:tbody
-           (if (empty? clips)
-             [:tr
-              [:td.text-center {:colSpan "2"} "No Clips!"]]
-             (map #(om/build animate % {:opts {:id {:id %} :build-fn (om/build clip-view % {:key {:id % }} )}} )clips)
-             )]]]))))
+      (dom/div #js {:className "well"}
+               (dom/table #js {:className "table table-bordered table-hover table-striped"}
+                (if (empty? clips)
+                 (dom/tbody nil
+                            (dom/tr nil
+                                    (dom/td #js {:className "text-center" :colSpan "2"} "No Clips!" )))
+                 (apply dom/tbody nil
+                        (map #(om/build animate % {:opts {:id {:id %} :build-fn (om/build clip-view %)}}) clips))))))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify
+    om/IDisplayName
+    (display-name [_]
+      "capture-panel")
     om/IInitState
     (init-state [_]
       {:title "loading..." :url "loading...."})
@@ -119,6 +122,9 @@
 
 (defn ^:export root [data owner]
   (reify
+    om/IDisplayName
+    (display-name [_]
+      "root")
     om/IWillMount
     (will-mount [this]
       (let [comm (om/get-shared owner [:channels :event-channel])]
