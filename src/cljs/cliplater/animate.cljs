@@ -13,4 +13,5 @@
       "animate")
     om/IRender
     (render [this]
+      (log/debug )
       build-fn)))

@@ -13,6 +13,9 @@
 
 (defn text-box [c owner {:keys [k label needs-focus]}]
   (reify
+    om/IInitState
+    (init-state [_]
+      {:event-channel (om/get-shared owner [:channels :event-channel])})
     om/IDisplayName
     (display-name [_]
       "text-box")
@@ -36,5 +39,5 @@
                                         :onKeyDown (fn [e]
                                                      (when (== (.-which e) ENTER_KEY)
                                                        (let [new-clip {:id (guid) :title (:title @c) :url (:url @c)}]
-                                                         (put! (om/get-shared owner [:channels :event-channel]) [:save new-clip]))))
+                                                         (put! (om/get-state owner :event-channel) [:save new-clip]))))
                                         :onChange #(om/update! c k (.. % -target -value))}))))))
