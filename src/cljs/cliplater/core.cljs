@@ -42,6 +42,9 @@
 
 (defn clip-view [clip owner]
   (reify
+   om/IInitState
+   (init-state [_]
+     {:event-channel (om/get-shared owner [:channels :event-channel])})
    om/IDisplayName
    (display-name [_]
      "clip-view")
@@ -58,7 +61,7 @@
              (dom/td #js {:className "delete"}
                      (dom/a #js {:className "btn btn-danger"
                                  :ref "delete-clip"
-                                 :onClick #(put! (om/get-shared owner [:channels :event-channel]) [:destroy @clip])
+                                 :onClick #(put! (om/get-state owner :event-channel) [:destroy @clip])
                                  } "delete"))))))
 
 (defn clips-view [{:keys [clips]} owner]
@@ -84,7 +87,9 @@
       "capture-panel")
     om/IInitState
     (init-state [_]
-      {:title "loading..." :url "loading...."})
+      {:title "loading..."
+       :url "loading...."
+       :event-channel (om/get-shared owner [:channels :event-channel])})
     om/IWillMount
       (will-mount [_]
         (let [ch (get-active-tab)]
@@ -113,7 +118,7 @@
                                          :ref "new-clip"
                                          :href "#"
                                          :onClick (fn [e]
-                                                    (let [comm (om/get-shared owner [:channels :event-channel])
+                                                    (let [comm (om/get-state owner :event-channel)
                                                           new-clip {:id (guid) :title (:title @current-tab) :url (:url @current-tab)}]
                                                       (put! comm [:save new-clip])))
                                          } "Capture" )))))))
