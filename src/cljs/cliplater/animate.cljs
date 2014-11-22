@@ -13,11 +13,15 @@
    {:getInitialState
     (fn []
       (this-as this
-               {:children (js/React.Children.map (.. this -props -children) (fn [child] child))}))
+               {:children
+                (->
+                 (.. this -props -children)
+                 (js/React.Children.map (fn [child] child))
+                 (js->clj :keywordize-keys false))}))
     :render
     (fn []
       (this-as this
-               (let [children (js->clj (:children (.. this -state)) :keywordize-keys false)]
+               (let [children (:children (.. this -state))]
                  (log/debug children)
                  (doseq [k (keys children)]
                    (log/debug k)))))}))
