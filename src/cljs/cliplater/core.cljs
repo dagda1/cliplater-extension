@@ -48,11 +48,6 @@
    om/IDisplayName
    (display-name [_]
      "clip-view")
-   om/IDidMount
-   (did-mount [_]
-     (let [node (om/get-node owner)
-           classes (str (.-className node) " in")]
-       (.setTimeout js/window #(set! (.-className node) classes) 250)))
    om/IRender
    (render [this]
      (dom/tr #js {:className "clip fade" :ref "clip-row" }
@@ -77,8 +72,9 @@
                  (dom/tbody nil
                             (dom/tr nil
                                     (dom/td #js {:className "text-center" :colSpan "2"} "No Clips!" )))
-                 (apply dom/tbody nil
-                        (map #(om/build animate % {:opts {:id {:id %} :build-fn (om/build clip-view %)}}) clips))))))))
+                 (let [tds (map #(dom/td (:title %)) clips)
+                        com (dom/td (:title (first clips)))]
+                   (apply animate nil tds))))))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify
