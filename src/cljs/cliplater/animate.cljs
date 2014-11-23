@@ -7,6 +7,10 @@
    [clojure.walk :as walk]
    [khroma.log :as log]))
 
+(defn clone-object [key obj]
+  (goog.object/forEach obj (fn [val key obj]
+                                            (log/debug key))))
+
 (def animate
   (js/React.createClass
    #js
@@ -17,11 +21,10 @@
                 (->
                  (.. this -props -children)
                  (js/React.Children.map (fn [child] child))
-                 (js->clj :keywordize-keys false))}))
+                 (js->clj :keywordize-keys true))}))
     :render
     (fn []
       (this-as this
                (let [children (:children (.. this -state))]
-                 (log/debug children)
-                 (doseq [k (keys children)]
-                   (log/debug k)))))}))
+                 (doseq [[k v] children]
+                   (clone-object k v)))))}))
