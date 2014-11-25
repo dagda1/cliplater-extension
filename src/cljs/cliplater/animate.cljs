@@ -11,14 +11,21 @@
 (defn merge-props! [obj props]
   (goog.object/forEach props (fn [v k o]
                                (when (and (.hasOwnProperty o k)
-                                          (not= k "children"))
+                                          (not= k "children")
+                                          (not= k "ref"))
                                 (aset obj k v)))))
 
+(defn clone-obj [obj]
+  (let [new-obj (js-obj)]
+    (goog.object/forEach obj (fn [v k o]
+                               (when (.hasOwnProperty o k)
+                                 (aset new-obj k v))))
+    new-obj))
+
 (defn clone-with-props [child props]
-  (let [new-obj (js-obj)
+  (let [new-obj (clone-obj (clj->js props))
         child-props (.-props child)]
 
-   (merge-props! new-obj (clj->js props))
    (merge-props! new-obj child-props)
 
    (when (and (.hasOwnProperty child-props "children") (not (.hasOwnProperty props "children")))
@@ -32,6 +39,7 @@
    {:getInitialState
     (fn []
       (this-as this
+               (log/debug (.. this -props -children))
                {:children
                 (->
                  (.. this -props -children)
@@ -44,8 +52,5 @@
                      childrenToRender (into {} (for [[k v] children]
                                                  (let [key (.-name k)]
                                                    {key (clone-with-props v {:ref key} )})))]
-                 (log/debug childrenToRender)
                  (let [result (dom/td nil childrenToRender)]
-                   result
-                   )
-                 )))}))
+                   result))))}))
