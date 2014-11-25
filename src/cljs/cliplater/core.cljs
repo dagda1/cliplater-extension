@@ -72,7 +72,7 @@
                  (dom/tbody nil
                             (dom/tr nil
                                     (dom/td #js {:className "text-center" :colSpan "2"} "No Clips!" )))
-                 (let [tds (map #(dom/td (:title %)) clips)
+                 (let [tds (map #(dom/td nil (:title %)) clips)
                         com (dom/td (:title (first clips)))]
                    (apply animate nil tds))))))))
 

@@ -5,11 +5,26 @@
    [cljs.core.async :as async
              :refer [<! >! chan close! timeout put! alts!]]
    [clojure.walk :as walk]
+   [goog.object :as gobject]
    [khroma.log :as log]))
 
-(defn clone-object [key obj]
-  (goog.object/forEach obj (fn [val key obj]
-                                            (log/debug key))))
+(defn merge-props! [obj props]
+  (goog.object/forEach props (fn [v k o]
+                               (when (and (.hasOwnProperty o k)
+                                          (not= k "children"))
+                                (aset obj k v)))))
+
+(defn clone-with-props [child props]
+  (let [new-obj (js-obj)
+        child-props (.-props child)]
+
+   (merge-props! new-obj (clj->js props))
+   (merge-props! new-obj child-props)
+
+   (when (and (.hasOwnProperty child-props "children") (not (.hasOwnProperty props "children")))
+     (aset new-obj "children" (.-children child-props)))
+
+   new-obj))
 
 (def animate
   (js/React.createClass
@@ -25,6 +40,12 @@
     :render
     (fn []
       (this-as this
-               (let [children (:children (.. this -state))]
-                 (doseq [[k v] children]
-                   (clone-object k v)))))}))
+               (let [children (:children (.. this -state))
+                     childrenToRender (into {} (for [[k v] children]
+                                                 (let [key (.-name k)]
+                                                   {key (clone-with-props v {:ref key} )})))]
+                 (log/debug childrenToRender)
+                 (let [result (dom/td nil childrenToRender)]
+                   result
+                   )
+                 )))}))
