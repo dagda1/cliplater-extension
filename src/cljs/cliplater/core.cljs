@@ -72,8 +72,7 @@
                  (dom/tbody nil
                             (dom/tr nil
                                     (dom/td #js {:className "text-center" :colSpan "2"} "No Clips!" )))
-                 (let [tds (map #(dom/td nil (:title %)) clips)
-                        com (dom/td (:title (first clips)))]
+                 (let [tds (map #(dom/span nil (:title %)) clips)]
                    (apply animate nil tds))))))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]

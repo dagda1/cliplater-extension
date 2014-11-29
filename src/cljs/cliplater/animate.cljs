@@ -8,6 +8,13 @@
    [goog.object :as gobject]
    [khroma.log :as log]))
 
+(defn log [key obj]
+  (log/debug "=======================")
+  (log/debug key)
+  (.dir js/console obj)
+  (log/debug key)
+  (log/debug "======================="))
+
 (defn merge-props! [obj props]
   (goog.object/forEach props (fn [v k o]
                                (when (and (.hasOwnProperty o k)
@@ -26,12 +33,14 @@
   (let [new-obj (clone-obj (clj->js props))
         child-props (.-props child)]
 
-   (merge-props! new-obj child-props)
+    (merge-props! new-obj child-props)
 
-   (when (and (.hasOwnProperty child-props "children") (not (.hasOwnProperty props "children")))
-     (aset new-obj "children" (.-children child-props)))
+    (when (and (.hasOwnProperty child-props "children") (not (.hasOwnProperty props "children")))
+      (aset new-obj "children" (.-children child-props)))
 
-   new-obj))
+    ((.-constructor child) new-obj)
+    )
+  )
 
 (def animate
   (js/React.createClass
@@ -39,18 +48,18 @@
    {:getInitialState
     (fn []
       (this-as this
-               (log/debug (.. this -props -children))
                {:children
                 (->
                  (.. this -props -children)
                  (js/React.Children.map (fn [child] child))
                  (js->clj :keywordize-keys true))}))
+
     :render
     (fn []
       (this-as this
                (let [children (:children (.. this -state))
-                     childrenToRender (into {} (for [[k v] children]
-                                                 (let [key (.-name k)]
-                                                   {key (clone-with-props v {:ref key} )})))]
-                 (let [result (dom/td nil childrenToRender)]
-                   result))))}))
+                     childrenToRender (clj->js (into {} (for [[k v] children]
+                                                  (let [key (.-name k)]
+                                                    {key (clone-with-props v {:ref key} )}))))]
+
+                 (dom/td nil childrenToRender))))}))
