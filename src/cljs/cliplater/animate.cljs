@@ -38,9 +38,7 @@
     (when (and (.hasOwnProperty child-props "children") (not (.hasOwnProperty props "children")))
       (aset new-obj "children" (.-children child-props)))
 
-    ((.-constructor child) new-obj)
-    )
-  )
+    ((.-constructor child) new-obj)))
 
 (def animate
   (js/React.createClass
@@ -53,7 +51,6 @@
                  (.. this -props -children)
                  (js/React.Children.map (fn [child] child))
                  (js->clj :keywordize-keys true))}))
-
     :render
     (fn []
       (this-as this

@@ -50,7 +50,7 @@
      "clip-view")
    om/IRender
    (render [this]
-     (dom/tr #js {:className "clip fade" :ref "clip-row" }
+     (dom/tr #js {:className "clip" :ref "clip-row" }
              (dom/td nil
                      (dom/a #js {:href (:url clip) :target "new"} (:title clip)))
              (dom/td #js {:className "delete"}
@@ -72,8 +72,7 @@
                  (dom/tbody nil
                             (dom/tr nil
                                     (dom/td #js {:className "text-center" :colSpan "2"} "No Clips!" )))
-                 (let [tds (map #(dom/span nil (:title %)) clips)]
-                   (apply animate nil tds))))))))
+                 (apply dom/tbody nil (om/build-all clip-view clips {:key :id}))))))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify
@@ -141,5 +140,4 @@
 (defn ^:export run []
   (let [channels (make-channels)]
     (om/root root app-state
-            {:target (. js/document (getElementById "container")) :shared {:channels channels} }))
-  )
+            {:target (. js/document (getElementById "container")) :shared {:channels channels} })))
