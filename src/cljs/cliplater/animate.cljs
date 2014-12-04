@@ -51,6 +51,21 @@
                  (.. this -props -children)
                  (js/React.Children.map (fn [child] child))
                  (js->clj :keywordize-keys true))}))
+
+    :componentDidMount
+    (fn []
+      (this-as this
+               (log "DOM NODE" (.-outerHTML (.getDOMNode this)))
+               )
+      )
+    :componentDidUpdate
+    (fn []
+      (log "in componentDidUpdate", "foo bar")
+     )
+    :componentWillReceiveProps
+    (fn [nextProps]
+      (log "in componentWillReceiveProps", nextProps)
+      )
     :render
     (fn []
       (this-as this
@@ -58,5 +73,6 @@
                      childrenToRender (clj->js (into {} (for [[k v] children]
                                                   (let [key (.-name k)]
                                                     {key (clone-with-props v {:ref key} )}))))]
-
-                 (dom/td nil childrenToRender))))}))
+                 ;(log "count" (count children))
+                 ;(log "childrenToRender" childrenToRender)
+                 (dom/tbody nil childrenToRender))))}))
