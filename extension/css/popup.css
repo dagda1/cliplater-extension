@@ -125,6 +125,15 @@ input:not([type="image"]) {
  to {background-color: inherit;}
 }
 
+.clip {
+  opacity: 0.01;
+  transition: opacity .5s ease-in;
+}
+
+.clip.in {
+  opacity: 1;
+}
+
 /* .clip td { */
 /*   -webkit-animation-name: pulse; */
 /*   -webkit-animation-iteration-count: 3s; */

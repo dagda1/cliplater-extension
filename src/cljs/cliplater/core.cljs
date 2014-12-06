@@ -13,7 +13,7 @@
    [cljs.core.async.macros :refer [go go-loop alt!]])
   (:use
    [cliplater.util :only [q guid]]
-   [cliplater.animate :only [animate]]))
+   [cliplater.animate :only [animate IHandleDoneEntering]]))
 
 (enable-console-print!)
 
@@ -48,6 +48,10 @@
    om/IDisplayName
    (display-name [_]
      "clip-view")
+   IHandleDoneEntering
+   (handle-done-entering [key]
+     (log/debug (str "this is the key ") key)
+     )
    om/IRender
    (render [this]
      (dom/tr #js {:className "clip" :ref "clip-row" }

@@ -15,6 +15,9 @@
   (log/debug key)
   (log/debug "======================="))
 
+(defprotocol IHandleDoneEntering
+  (handle-done-entering [key]))
+
 (defn merge-props! [obj props]
   (goog.object/forEach props (fn [v k o]
                                (when (and (.hasOwnProperty o k)
@@ -46,29 +49,6 @@
 
     ((.-constructor child) new-obj)))
 
-;; function getValueForKey(key) {
-;;   if (next.hasOwnProperty(key)) {
-;;     return next[key];
-;;   } else {
-;;     return prev[key];
-;;   }
-;; }
-;; for (var nextKey in next) {
-;;   if (nextKeysPending.hasOwnProperty(nextKey)) {
-;;     for (i = 0; i < nextKeysPending[nextKey].length; i++) {
-;;       var pendingNextKey = nextKeysPending[nextKey][i];
-;;       childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
-;;         pendingNextKey
-;;       );
-;;     }
-;;   }
-;;   childMapping[nextKey] = getValueForKey(nextKey);
-;; }
-;;
-;; for (i = 0; i < pendingKeys.length; i++) {
-;;   childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
-;; }
-;
 (defn mergeChildMappings [prevChildMapping nextChildMapping]
   (let [prev (or prevChildMapping (js-obj))
         next (or nextChildMapping (js-obj))
@@ -82,21 +62,23 @@
    {:getInitialState
     (fn []
       (this-as this
-               {:children
-                (->
-                 (.. this -props -children)
-                 (js/React.Children.map (fn [child] child))
-                 (js->clj :keywordize-keys true))}))
-
-    :componentDidMount
-    (fn []
-      (this-as this
-               ; (log "DOM NODE" (.-outerHTML (.getDOMNode this)))
-               )
-      )
+               {:children (js-obj)}))
     :componentDidUpdate
     (fn []
-     )
+      (this-as this
+       (let [children (.. this -state -children)
+             keys (.keys js/Object children)
+             len (alength keys)]
+         (dotimes [i len]
+           (let [component (aget (.-refs this) (aget keys i))
+                 node (.getDOMNode component)
+                 className (.-className node)]
+             (.setTimeout js/window #(do
+                                       (aset node "className" (str className " in"))
+                                       (log "component" component)
+                                       (log "satisfies" (satisfies? IHandleDoneEntering component))
+                                       ) 150))))))
+;
     :componentWillReceiveProps
     (fn [nextProps]
       (this-as this
@@ -114,5 +96,4 @@
                      childrenToRender (clj->js (into {} (for [[k v] children]
                                                   (let [key (.-name k)]
                                                     {key (clone-with-props v {:ref key} )}))))]
-                 (log "childrenToRender" childrenToRender)
                  (js/React.DOM.tbody nil childrenToRender))))}))
