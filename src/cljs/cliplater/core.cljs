@@ -68,11 +68,7 @@
     (render [this]
       (dom/div #js {:className "well"}
                (dom/table #js {:className "table table-bordered table-hover table-striped"}
-                (if (empty? clips)
-                 (dom/tbody nil
-                            (dom/tr nil
-                                    (dom/td #js {:className "text-center" :colSpan "2"} "No Clips!" )))
-                 (apply dom/tbody nil (om/build-all clip-view clips {:key :id}))))))))
+                          (apply animate nil (om/build-all clip-view clips {:key :id})))))))
 
 (defn capture-panel [{clips :clips {:keys [title url] :as current-tab} :current-tab} owner]
   (reify

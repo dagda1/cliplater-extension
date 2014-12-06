@@ -29,6 +29,12 @@
                                  (aset new-obj k v))))
     new-obj))
 
+(defn object-keys [o]
+  (clj->js ((fn [obj]
+                    (filter (fn [k]
+                              (. obj (hasOwnProperty k))
+                              ) (js-keys next))) o)))
+
 (defn clone-with-props [child props]
   (let [new-obj (clone-obj (clj->js props))
         child-props (.-props child)]
@@ -39,6 +45,36 @@
       (aset new-obj "children" (.-children child-props)))
 
     ((.-constructor child) new-obj)))
+
+;; function getValueForKey(key) {
+;;   if (next.hasOwnProperty(key)) {
+;;     return next[key];
+;;   } else {
+;;     return prev[key];
+;;   }
+;; }
+;; for (var nextKey in next) {
+;;   if (nextKeysPending.hasOwnProperty(nextKey)) {
+;;     for (i = 0; i < nextKeysPending[nextKey].length; i++) {
+;;       var pendingNextKey = nextKeysPending[nextKey][i];
+;;       childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
+;;         pendingNextKey
+;;       );
+;;     }
+;;   }
+;;   childMapping[nextKey] = getValueForKey(nextKey);
+;; }
+;;
+;; for (i = 0; i < pendingKeys.length; i++) {
+;;   childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
+;; }
+;
+(defn mergeChildMappings [prevChildMapping nextChildMapping]
+  (let [prev (or prevChildMapping (js-obj))
+        next (or nextChildMapping (js-obj))
+        ]
+    next
+    ))
 
 (def animate
   (js/React.createClass
@@ -55,24 +91,28 @@
     :componentDidMount
     (fn []
       (this-as this
-               (log "DOM NODE" (.-outerHTML (.getDOMNode this)))
+               ; (log "DOM NODE" (.-outerHTML (.getDOMNode this)))
                )
       )
     :componentDidUpdate
     (fn []
-      (log "in componentDidUpdate", "foo bar")
      )
     :componentWillReceiveProps
     (fn [nextProps]
-      (log "in componentWillReceiveProps", nextProps)
-      )
+      (this-as this
+               (let [prevChildMapping (.. this -state -children)
+                     children (.-children nextProps)
+                     nextChildMapping (js/React.Children.map children (fn [child] child))
+                     mergedChildMappings (mergeChildMappings prevChildMapping nextChildMapping)
+                     mergedKeys (.keys js/Object mergedChildMappings)
+                     ]
+                 (.setState this #js {:children mergedChildMappings}))))
     :render
     (fn []
       (this-as this
-               (let [children (:children (.. this -state))
+               (let [children (js->clj (.. this -state -children) :keywordize-keys true)
                      childrenToRender (clj->js (into {} (for [[k v] children]
                                                   (let [key (.-name k)]
                                                     {key (clone-with-props v {:ref key} )}))))]
-                 ;(log "count" (count children))
-                 ;(log "childrenToRender" childrenToRender)
-                 (dom/tbody nil childrenToRender))))}))
+                 (log "childrenToRender" childrenToRender)
+                 (js/React.DOM.tbody nil childrenToRender))))}))
