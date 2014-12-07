@@ -6,14 +6,9 @@
              :refer [<! >! chan close! timeout put! alts!]]
    [clojure.walk :as walk]
    [goog.object :as gobject]
-   [khroma.log :as log]))
-
-(defn log [key obj]
-  (log/debug "=======================")
-  (log/debug key)
-  (.dir js/console obj)
-  (log/debug key)
-  (log/debug "======================="))
+   [khroma.log :as log])
+  (:use
+   [cliplater.util :only [q guid addClass log]]))
 
 (defprotocol IHandleDoneEntering
   (handle-done-entering [key]))
@@ -53,8 +48,7 @@
   (let [prev (or prevChildMapping (js-obj))
         next (or nextChildMapping (js-obj))
         ]
-    next
-    ))
+    next))
 
 (def animate
   (js/React.createClass
@@ -74,11 +68,10 @@
                  node (.getDOMNode component)
                  className (.-className node)]
              (.setTimeout js/window #(do
-                                       (aset node "className" (str className " in"))
-                                       (log "component" component)
+                                       (addClass node "in")
                                        (log "satisfies" (satisfies? IHandleDoneEntering component))
                                        ) 150))))))
-;
+
     :componentWillReceiveProps
     (fn [nextProps]
       (this-as this
