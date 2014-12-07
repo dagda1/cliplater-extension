@@ -44,10 +44,12 @@
 
     ((.-constructor child) new-obj)))
 
+;; find any deleted keys and add them into the correct slot
 (defn mergeChildMappings [prevChildMapping nextChildMapping]
   (let [prev (or prevChildMapping (js-obj))
-        next (or nextChildMapping (js-obj))
-        ]
+        next (or nextChildMapping (js-obj))]
+    (log "prev" prev)
+    (log "next" next)
     next))
 
 (def animate
@@ -69,18 +71,20 @@
                  className (.-className node)]
              (.setTimeout js/window #(do
                                        (addClass node "in")
-                                       (log "satisfies" (satisfies? IHandleDoneEntering component))
                                        ) 150))))))
 
     :componentWillReceiveProps
     (fn [nextProps]
       (this-as this
                (let [prevChildMapping (.. this -state -children)
-                     children (.-children nextProps)
-                     nextChildMapping (js/React.Children.map children (fn [child] child))
+                     nextChildren (.-children nextProps)
+                     nextChildMapping (js/React.Children.map nextChildren (fn [child] child))
                      mergedChildMappings (mergeChildMappings prevChildMapping nextChildMapping)
-                     mergedKeys (.keys js/Object mergedChildMappings)
-                     ]
+                     mergedKeys (.keys js/Object mergedChildMappings)]
+
+                 ;; find keys to animate in
+                 ;; find keys to animate output
+
                  (.setState this #js {:children mergedChildMappings}))))
     :render
     (fn []
