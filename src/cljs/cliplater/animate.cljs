@@ -44,63 +44,27 @@
 
     ((.-constructor child) new-obj)))
 
-;; find any deleted keys and add them into the correct slot
-;; After 1 item added
-;; childMapping {:new_item_id, element}
-;; previousKeysPending {}
-;; nextKeysPending {}
-;; pendingKeys: []
-;; var pendingKeys = [];
-;; for (var prevKey in prev) {
-;;   if (next.hasOwnProperty(prevKey)) {
-;;     if (pendingKeys.length) {
-;;       nextKeysPending[prevKey] = pendingKeys;
-;;       pendingKeys = [];
-;;     }
-;;   } else {
-;;     pendingKeys.push(prevKey);
-;;   }
-;; }
-;; var i;
-;; var childMapping = {};
-;; for (var nextKey in next) {
-;;   if (nextKeysPending.hasOwnProperty(nextKey)) {
-;;     for (i = 0; i < nextKeysPending[nextKey].length; i++) {
-;;       var pendingNextKey = nextKeysPending[nextKey][i];
-;;       childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
-;;         pendingNextKey
-;;       );
-;;     }
-;;   }
-;;   childMapping[nextKey] = getValueForKey(nextKey);
-;; }
-
-;; // Finally, add the keys which didn't appear before any key in `next`
-;; for (i = 0; i < pendingKeys.length; i++) {
-;;   childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
-;; }
-
-;; return childMapping;
 (defn mergeChildMappings [prevChildMapping nextChildMapping]
   (let [prev (or prevChildMapping (js-obj))
         next (or nextChildMapping (js-obj))
         prevKeys (.keys js/Object prev)
         nextKeys (.keys js/Object next)
         nextKeysPending (js-obj)]
+
     (letfn [(getValueForKey [key]
-              (log "next" (aget next key))
               (if (.hasOwnProperty next key)
                 (aget next key)
                 (aget prev key)))]
-      ;(log "prev" prev)
-      ;(log "next" next)
-      (let [child-mapping (reduce (fn [acc key]
+
+      (let [pendingKeys (reduce (fn [acc key]
+                                  (conj acc key)
+                                  ) [] prevKeys)
+
+            child-mapping (reduce (fn [acc key]
                                     (assoc acc key (getValueForKey key))
-                                    ) {} nextKeys )]
-        (log "child-mapping" (clj->js child-mapping))
-        (clj->js child-mapping)
-        )
-      )))
+                                    ) {} (into pendingKeys (js->clj nextKeys)))]
+
+        (clj->js child-mapping)))))
 
 (def animate
   (js/React.createClass
