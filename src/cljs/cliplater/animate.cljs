@@ -76,27 +76,31 @@
     :componentDidUpdate
     (fn []
       (this-as this
-       (let [children (.. this -state -children)
-             keys (.keys js/Object children)
-             len (alength keys)]
+       (let [keysToEnter (aget this "keysToEnter")
+             len (alength keysToEnter)]
+
          (dotimes [i len]
-           (let [component (aget (.-refs this) (aget keys i))
+           (let [component (aget (.-refs this) (aget keysToEnter i))
                  node (.getDOMNode component)
                  className (.-className node)]
-             (.setTimeout js/window #(do
-                                       (addClass node "in")
-                                       ) 150))))))
+             (.setTimeout js/window #(addClass node "in") 150))))))
 
     :componentWillReceiveProps
     (fn [nextProps]
       (this-as this
                (let [prevChildMapping (.. this -state -children)
-                     nextChildren (.-children nextProps)
-                     nextChildMapping (js/React.Children.map nextChildren (fn [child] child))
+                     nextChildMapping (js/React.Children.map (.-children nextProps) (fn [child] child))
                      mergedChildMappings (mergeChildMappings prevChildMapping nextChildMapping)
-                     mergedKeys (.keys js/Object mergedChildMappings)]
+                     prevKeys (.keys js/Object (or prevChildMapping (js-obj)))
+                     nextKeys (.keys js/Object (or nextChildMapping (js-obj)))]
 
-                 (.setState this #js {:children mergedChildMappings}))))
+                 (.setState this #js {:children mergedChildMappings})
+
+                 (let [keysToEnter (clj->js (filter #(not (.hasOwnProperty prevChildMapping %)) (js->clj nextKeys)))
+                       keysToLeave (clj->js (filter #(not (.hasOwnProperty nextChildMapping %)) (js->clj prevKeys)))]
+
+                   (set! (.-keysToEnter this) (clj->js keysToEnter))
+                   (set! (.-keysToLeave this) (clj->js keysToLeave))))))
     :render
     (fn []
       (this-as this
