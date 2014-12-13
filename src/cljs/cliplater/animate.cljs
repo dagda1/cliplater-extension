@@ -83,6 +83,26 @@
 
   (.setTimeout js/window #(removeClass node "in") TICK))
 
+(defn completing-me
+  ([f]
+     (log "in 1" f)
+     (completing-me f identity))
+  ([f cf]
+    (log "in 2 " f )
+    (log "in 2 " cf)
+    (fn
+      ([]
+         (log "in higher 1" "1")
+         (f))
+      ([x]
+         (log "in higher 2" x)
+         (log "in higher 2" cf)
+         (cf x))
+      ([x y]
+         (log "in higher 3" x)
+         (log "in higher 3" y)
+         (f x y)))))
+
 (def animate
   (js/React.createClass
    #js
@@ -125,13 +145,8 @@
 
                  (.setState this #js {:children mergedChildMappings})
 
-                 (let [keysToEnter (clj->js (filter #(not (.hasOwnProperty prevChildMapping %)) (js->clj nextKeys)))
-                       keysToLeave (clj->js (filter #(not (.hasOwnProperty nextChildMapping %)) (js->clj prevKeys)))]
-
-                   (when (> (count keysToEnter) 0)
-                     (log "normal" (transduce (filter #(not (.hasOwnProperty prevChildMapping %))) conj [] nextKeys))
-                     (log "transduce" (transduce (filter #(not (.hasOwnProperty prevChildMapping %))) (.-push #js[]) #js [] nextKeys) )
-                     )
+                 (let [keysToEnter (transduce (filter #(not (.hasOwnProperty prevChildMapping %))) (completing-me (fn [arr x] (.push arr x) arr)) #js [] nextKeys)
+                       keysToLeave (transduce (filter #(not (.hasOwnProperty nextChildMapping %))) (completing-me (fn [arr x] (.push arr x) arr)) #js [] prevKeys)]
 
                    (set! (.-keysToEnter this) (clj->js keysToEnter))
                    (set! (.-keysToLeave this) (clj->js keysToLeave))))))
