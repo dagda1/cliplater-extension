@@ -1,6 +1,7 @@
 (ns cliplater.util
   (:require
-   [khroma.log :as log])
+   [khroma.log :as log]
+   [clojure.string :as str])
   (:import [goog.ui IdGenerator]))
 
 (defn log [key obj]
@@ -24,3 +25,8 @@
   (let [existing (.-className node)]
     (when-not (hasClass node className)
       (aset node "className" (str existing " " className)))))
+
+(defn removeClass [node className]
+  (let [existing (.-className node)]
+    (when (hasClass node className)
+      (aset node "className" (str/replace existing (re-pattern (str ".?\\b" className "\\b")) "")))))

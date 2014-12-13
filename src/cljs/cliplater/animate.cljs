@@ -8,7 +8,9 @@
    [goog.object :as gobject]
    [khroma.log :as log])
   (:use
-   [cliplater.util :only [q guid addClass log]]))
+   [cliplater.util :only [q guid addClass log removeClass]]))
+
+(def TICK 17)
 
 (defprotocol IHandleDoneEntering
   (handle-done-entering [key]))
@@ -66,6 +68,30 @@
 
         (clj->js child-mapping)))))
 
+(defn queueClass [node className]
+  (.addEventListener node "transitionend" (fn [e]
+                                            (log "transitionend" node)
+                                            ) false)
+
+  (.setTimeout js/window #(addClass node className) TICK))
+
+(defn performEnter [node]
+  (.setTimeout js/window #(addClass node "in") TICK))
+
+(defn handleDoneLeaving [key]
+  (this-as this
+           (let [children (.. this -state -children)]
+             (log "before children" children)
+             (js-delete children key)
+             (log "after children" children)
+             (.setState this #js {:children children} ))))
+
+(defn performLeave [node key]
+  (this-as this
+           (.addEventListener node "transitionend" (.bind handleDoneLeaving this key) false))
+
+  (.setTimeout js/window #(removeClass node "in") TICK))
+
 (def animate
   (js/React.createClass
    #js
@@ -77,19 +103,27 @@
     (fn []
       (this-as this
        (let [keysToEnter (aget this "keysToEnter")
-             len (alength keysToEnter)]
+             keysToEnterLen (alength keysToEnter)
+             keysToLeave (aget this "keysToLeave")
+             keysToLeaveLen (alength keysToLeave)]
 
-         (dotimes [i len]
+         (dotimes [i keysToEnterLen]
            (let [component (aget (.-refs this) (aget keysToEnter i))
-                 node (.getDOMNode component)
-                 className (.-className node)]
-             (.setTimeout js/window #(addClass node "in") 150))))))
+                 node (.getDOMNode component)]
+             (performEnter node)))
+
+         (dotimes [i keysToLeaveLen]
+          (let [key (aget keysToLeave i)
+                component (aget (.-refs this) key)
+                node (.getDOMNode component)]
+            ((.bind performLeave this) node key)))
+         )))
 
     :componentWillReceiveProps
     (fn [nextProps]
       (this-as this
                (let [prevChildMapping (.. this -state -children)
-                     nextChildMapping (js/React.Children.map (.-children nextProps) (fn [child] child))
+                     nextChildMapping (or (js/React.Children.map (.-children nextProps) (fn [child] child)) (js-obj))
                      mergedChildMappings (mergeChildMappings prevChildMapping nextChildMapping)
                      prevKeys (.keys js/Object (or prevChildMapping (js-obj)))
                      nextKeys (.keys js/Object (or nextChildMapping (js-obj)))]
