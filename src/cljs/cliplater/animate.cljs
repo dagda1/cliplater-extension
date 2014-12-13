@@ -33,7 +33,7 @@
   (clj->js ((fn [obj]
                     (filter (fn [k]
                               (. obj (hasOwnProperty k))
-                              ) (js-keys next))) o)))
+) (js-keys next))) o)))
 
 (defn clone-with-props [child props]
   (let [new-obj (clone-obj (clj->js props))
@@ -68,22 +68,13 @@
 
         (clj->js child-mapping)))))
 
-(defn queueClass [node className]
-  (.addEventListener node "transitionend" (fn [e]
-                                            (log "transitionend" node)
-                                            ) false)
-
-  (.setTimeout js/window #(addClass node className) TICK))
-
 (defn performEnter [node]
   (.setTimeout js/window #(addClass node "in") TICK))
 
 (defn handleDoneLeaving [key]
   (this-as this
            (let [children (.. this -state -children)]
-             (log "before children" children)
              (js-delete children key)
-             (log "after children" children)
              (.setState this #js {:children children} ))))
 
 (defn performLeave [node key]
@@ -108,16 +99,20 @@
              keysToLeaveLen (alength keysToLeave)]
 
          (dotimes [i keysToEnterLen]
-           (let [component (aget (.-refs this) (aget keysToEnter i))
+           (let [key (aget keysToEnter i)
+                 component (aget (.-refs this) key)
                  node (.getDOMNode component)]
              (performEnter node)))
+
+         (set! (.-keysToEnter this) [])
 
          (dotimes [i keysToLeaveLen]
           (let [key (aget keysToLeave i)
                 component (aget (.-refs this) key)
                 node (.getDOMNode component)]
             ((.bind performLeave this) node key)))
-         )))
+
+         (set! (.-keysToLeave this) []))))
 
     :componentWillReceiveProps
     (fn [nextProps]
