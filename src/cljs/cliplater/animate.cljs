@@ -128,6 +128,11 @@
                  (let [keysToEnter (clj->js (filter #(not (.hasOwnProperty prevChildMapping %)) (js->clj nextKeys)))
                        keysToLeave (clj->js (filter #(not (.hasOwnProperty nextChildMapping %)) (js->clj prevKeys)))]
 
+                   (when (> (count keysToEnter) 0)
+                     (log "normal" (transduce (filter #(not (.hasOwnProperty prevChildMapping %))) conj [] nextKeys))
+                     (log "transduce" (transduce (filter #(not (.hasOwnProperty prevChildMapping %))) (.-push #js[]) #js [] nextKeys) )
+                     )
+
                    (set! (.-keysToEnter this) (clj->js keysToEnter))
                    (set! (.-keysToLeave this) (clj->js keysToLeave))))))
     :render
