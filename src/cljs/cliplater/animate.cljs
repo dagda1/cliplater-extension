@@ -130,4 +130,5 @@
                  (goog.object/forEach children (fn [v k o]
                                                  (aset childrenToRender k (clone-with-props v {:ref k}))))
                  (log "childrentorender" childrenToRender)
-                 (js/React.DOM.tbody nil childrenToRender))))}))
+                 (log "props" (.-props this))
+                 (js/React.createElement "tbody" (.-props this) childrenToRender))))}))
