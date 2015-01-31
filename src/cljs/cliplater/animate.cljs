@@ -12,9 +12,6 @@
 
 (def TICK 17)
 
-(defprotocol IHandleDoneEntering
-  (handle-done-entering [key]))
-
 (defn merge-props! [obj props]
   (goog.object/forEach props (fn [v k o]
                                (when (and (.hasOwnProperty o k)
@@ -27,13 +24,8 @@
     (goog.object/forEach obj (fn [v k o]
                                (when (.hasOwnProperty o k)
                                  (aset new-obj k v))))
-    new-obj))
 
-(defn object-keys [o]
-  (clj->js ((fn [obj]
-                    (filter (fn [k]
-                              (. obj (hasOwnProperty k))
-) (js-keys next))) o)))
+    new-obj))
 
 (defn clone-with-props [child props]
   (let [new-obj (clone-obj (clj->js props))
@@ -44,7 +36,7 @@
     (when (and (.hasOwnProperty child-props "children") (not (.hasOwnProperty props "children")))
       (aset new-obj "children" (.-children child-props)))
 
-    ((.-constructor child) new-obj)))
+    (js/React.createElement (.type child) new-obj)))
 
 (defn mergeChildMappings [prevChildMapping nextChildMapping]
   (let [prev (or prevChildMapping (js-obj))
@@ -133,8 +125,9 @@
     :render
     (fn []
       (this-as this
-               (let [children (js->clj (.. this -state -children) :keywordize-keys true)
-                     childrenToRender (clj->js (into {} (for [[k v] children]
-                                                  (let [key (.-name k)]
-                                                    {key (clone-with-props v {:ref key} )}))))]
+               (let [children (.. this -state -children)
+                     childrenToRender  (js-obj)]
+                 (goog.object/forEach children (fn [v k o]
+                                                 (aset childrenToRender k (clone-with-props v {:ref k}))))
+                 (log "childrentorender" childrenToRender)
                  (js/React.DOM.tbody nil childrenToRender))))}))

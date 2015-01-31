@@ -13,7 +13,7 @@
    [cljs.core.async.macros :refer [go go-loop alt!]])
   (:use
    [cliplater.util :only [q guid]]
-   [cliplater.animate :only [animate IHandleDoneEntering]]))
+   [cliplater.animate :only [animate]]))
 
 (enable-console-print!)
 
@@ -48,10 +48,6 @@
    om/IDisplayName
    (display-name [_]
      "clip-view")
-   IHandleDoneEntering
-   (handle-done-entering [key]
-     (log/debug (str "this is the key ") key)
-     )
    om/IRender
    (render [this]
      (dom/tr #js {:className "clip" :ref "clip-row" }
@@ -114,8 +110,7 @@
                                          :onClick (fn [e]
                                                     (let [comm (om/get-state owner :event-channel)
                                                           new-clip {:id (guid) :title (:title @current-tab) :url (:url @current-tab)}]
-                                                      (put! comm [:save new-clip])))
-                                         } "Capture" )))))))
+                                                      (put! comm [:save new-clip])))} "Capture" )))))))
 
 (defn ^:export root [data owner]
   (reify
